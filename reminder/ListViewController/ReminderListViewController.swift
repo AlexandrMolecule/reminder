@@ -8,46 +8,46 @@
 import UIKit
 
 class ReminderListViewController: UICollectionViewController {
-    typealias DataSource = UICollectionViewDiffableDataSource<Int, String>
-    typealias Snapshot = NSDiffableDataSourceSnapshot<Int, String>
-    
     var dataSource: DataSource!
-
+    var reminders: [Reminder] = Reminder.sampleData
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        
+        //let date = Date.now
+        //print(date.formatted(date: .o, time: .standard))
         
         let listLayout = listLayout()
         self.collectionView.collectionViewLayout = listLayout
         
         //регистрируем ячейки для коллекции
-        let cellRegistration = UICollectionView.CellRegistration{
-            (cell : UICollectionViewListCell, indexPath: IndexPath, id: String) in
-            
-            let item = Reminder.sampleData[indexPath.item]
-            var contentConfiguration = cell.defaultContentConfiguration()
-            
-            contentConfiguration.text = item.title
-            
-            cell.contentConfiguration = contentConfiguration
-            
-            
+        let cellRegistration = UICollectionView.CellRegistration(handler: cellRegistrationHandler)
+        
+        dataSource = DataSource(collectionView: collectionView) { (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: Reminder.ID) in
+            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: itemIdentifier)
         }
         
-        dataSource = DataSource(collectionView: collectionView) { (collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: String) in
-            return collectionView.dequeueConfiguredReusableCell(using: cellRegistration, for: indexPath, item: itemIdentifier)
-                }
-        
-        var snapshot = Snapshot()
-        snapshot.appendSections([0])
-        snapshot.appendItems(Reminder.sampleData.map{$0.title})
-        
-        dataSource.apply(snapshot)
+        updateSnapshot()
         
         collectionView.dataSource = dataSource
         
     }
+    // вызывается при начале клика
+    // если тру покажет что ячейка выделена
+    //из-за кастомного цвета не показывается
+    override func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+        let id = reminders[indexPath.item].id
+        showDetail(for: id)
+        return true
+    }
+    
+    //переход на детальный
+    func showDetail(for id: Reminder.ID) {
+        let reminder = reminder(for: id)
+        let viewController = ReminderViewController(reminder: reminder)
+        navigationController?.pushViewController(viewController, animated: true)
+    }
+    
     // создаем композиционный layout
     private func listLayout() -> UICollectionViewCompositionalLayout{
         
@@ -59,7 +59,7 @@ class ReminderListViewController: UICollectionViewController {
         let layout = UICollectionViewCompositionalLayout.list(using: listConfiguration)
         return layout
     }
-
-
+    
+    
 }
 
