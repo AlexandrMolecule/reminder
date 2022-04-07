@@ -11,10 +11,11 @@ extension ReminderListViewController{
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Reminder.ID>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Reminder.ID>
     
-    func updateSnapshot(reloading ids: [Reminder.ID] = []) -> Void{
+    func updateSnapshot(reloading idsThatChanged: [Reminder.ID] = []) -> Void{
+        let ids = idsThatChanged.filter { id in filteredReminders.contains(where: { $0.id == id }) }
         var snapshot = Snapshot()
         snapshot.appendSections([0])
-        snapshot.appendItems(reminders.map{$0.id})
+        snapshot.appendItems(filteredReminders.map{$0.id})
         if(!ids.isEmpty) {
             snapshot.reloadItems(ids)
         }
@@ -52,6 +53,11 @@ extension ReminderListViewController{
         button.setImage(image, for: .normal)
         return UICellAccessory.CustomViewConfiguration(customView: button, placement: .leading(displayed: .always))
     }
+    
+    func deleteReminder(with id: Reminder.ID) {
+            let index = reminders.indexOfReminder(id)
+            reminders.remove(at: index)
+        }
     
     func reminder(for id: Reminder.ID) -> Reminder{
         let index = reminders.indexOfReminder(id)
