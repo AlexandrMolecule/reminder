@@ -11,6 +11,8 @@ extension ReminderListViewController{
     typealias DataSource = UICollectionViewDiffableDataSource<Int, Reminder.ID>
     typealias Snapshot = NSDiffableDataSourceSnapshot<Int, Reminder.ID>
     
+    private var reminderStore: ReminderStore { ReminderStore.instance}
+    
     func updateSnapshot(reloading idsThatChanged: [Reminder.ID] = []) -> Void{
         let ids = idsThatChanged.filter { id in filteredReminders.contains(where: { $0.id == id }) }
         var snapshot = Snapshot()
@@ -56,9 +58,9 @@ extension ReminderListViewController{
     }
     
     func deleteReminder(with id: Reminder.ID) {
-            let index = reminders.indexOfReminder(id)
-            reminders.remove(at: index)
-        }
+        let index = reminders.indexOfReminder(id)
+        reminders.remove(at: index)
+    }
     
     func reminder(for id: Reminder.ID) -> Reminder{
         let index = reminders.indexOfReminder(id)
@@ -68,6 +70,22 @@ extension ReminderListViewController{
         let index = reminders.indexOfReminder(id)
         reminders[index] = reminder
         
+    }
+    
+    func prepareReminderStore() {
+        Task {
+            do {
+                try await reminderStore.requestAccess()
+                reminders = try await reminderStore.readAll()
+            }catch Error.accessDenied, Error.accessRestricted {
+                #if DEBUG
+                reminders = Reminder.sampleData
+                #endif
+            }catch {
+                showError(error as! Error)
+            }
+            updateSnapshot()
+        }
     }
     
     func completeReminder(with id: Reminder.ID){

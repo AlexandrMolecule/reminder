@@ -12,7 +12,7 @@ extension ReminderListViewController {
         completeReminder(with: id)
     }
     @objc func didCancelAdd(_ sender: UIBarButtonItem) {
-        dismiss(animated: false)
+        dismiss(animated: true)
     }
     @objc func didPressAddButton(_ sender: UIBarButtonItem) {
         let reminder = Reminder(title: "", dueDate: Date.now)

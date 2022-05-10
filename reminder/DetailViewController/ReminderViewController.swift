@@ -54,11 +54,12 @@ class ReminderViewController: UICollectionViewController{
     
     override func setEditing(_ editing: Bool, animated: Bool) {
         super.setEditing(editing, animated: animated)
-        if (editing)  {prepareForEditing()} else{ if !isAddingNewReminder {
-            prepareForViewing()
-        } else {
-            onChange(temporaryReminder)
-        }}
+        if (editing)  {prepareForEditing()} else{
+            if !isAddingNewReminder {
+                prepareForViewing()
+            } else {
+                onChange(temporaryReminder)
+            }}
     }
     
     func cellRegistrationHandler(cell: UICollectionViewListCell, indexPath: IndexPath, row: Row){
