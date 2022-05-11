@@ -65,8 +65,15 @@ extension ReminderListViewController{
     }
     
     func deleteReminder(with id: Reminder.ID) {
-        let index = reminders.indexOfReminder(id)
-        reminders.remove(at: index)
+        do{
+            try reminderStore.remove(with: id)
+            let index = reminders.indexOfReminder(id)
+            reminders.remove(at: index)
+            
+        }catch ReminderError.accessDenied {
+        } catch {
+            showError(error)
+        }
     }
     
     func reminder(for id: Reminder.ID) -> Reminder{
@@ -88,8 +95,16 @@ extension ReminderListViewController{
     }
     
     func update(_ reminder: Reminder, id: Reminder.ID) -> Void {
-        let index = reminders.indexOfReminder(id)
-        reminders[index] = reminder
+        do{
+            try reminderStore.save(reminder)
+            let index = reminders.indexOfReminder(id)
+            reminders[index] = reminder
+        } catch ReminderError.accessDenied {
+            
+        }
+        catch  {
+            showError(error)
+        }
         
     }
     

@@ -82,4 +82,12 @@ class ReminderStore {
         try ekStore.save(ekReminder, commit: true)
         return ekReminder.calendarItemIdentifier
     }
+    
+    func remove(with id:Reminder.ID) throws -> Void{
+        guard isAvailable else{
+            throw ReminderError.accessDenied
+        }
+        let ekReminder = try read(with: id)
+        try ekStore.remove(ekReminder, commit: true)
+    }
 }

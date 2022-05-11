@@ -26,6 +26,7 @@ class ReminderViewController: UICollectionViewController{
         self.reminder = reminder
         self.temporaryReminder = reminder
         self.onChange = onChange
+        
         var listConfiguration = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         listConfiguration.showsSeparators = false
         listConfiguration.headerMode = .firstItemInSection
