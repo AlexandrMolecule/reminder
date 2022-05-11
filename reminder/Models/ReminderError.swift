@@ -8,12 +8,13 @@
 import Foundation
 
 
-enum Error: LocalizedError {
+enum ReminderError: LocalizedError {
     case failedReadingReminders
     case reminderHasNoDueDate
     case accessDenied
     case unknown
     case accessRestricted
+    case failedReadingCalendarItem
     
     var errorDescription: String?{
         switch self {
@@ -29,6 +30,8 @@ enum Error: LocalizedError {
             return NSLocalizedString("An unknown error occurred.", comment: "unknown error description")
         case .accessRestricted:
             return NSLocalizedString("This device doesn't allow access to reminders.", comment: "access restricted error description")
+        case .failedReadingCalendarItem:
+                   return NSLocalizedString("Failed to read a calendar item.", comment: "failed reading calendar item error description")
         }
         
         

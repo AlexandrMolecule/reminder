@@ -57,6 +57,13 @@ extension ReminderListViewController{
         return UICellAccessory.CustomViewConfiguration(customView: button, placement: .leading(displayed: .always))
     }
     
+    func reminderStoreChanged(){
+        Task{
+            reminders = try await reminderStore.readAll()
+            updateSnapshot()
+        }
+    }
+    
     func deleteReminder(with id: Reminder.ID) {
         let index = reminders.indexOfReminder(id)
         reminders.remove(at: index)
@@ -66,6 +73,20 @@ extension ReminderListViewController{
         let index = reminders.indexOfReminder(id)
         return reminders[index]
     }
+    
+    func add(_ reminder: Reminder) {
+        var reminder = reminder
+        do{
+            let idFromStore = try reminderStore.save(reminder)
+            reminder.id = idFromStore
+            reminders.append(reminder)
+        }catch ReminderError.accessDenied {
+            
+        }catch {
+            showError(error)
+        }
+    }
+    
     func update(_ reminder: Reminder, id: Reminder.ID) -> Void {
         let index = reminders.indexOfReminder(id)
         reminders[index] = reminder
@@ -77,12 +98,13 @@ extension ReminderListViewController{
             do {
                 try await reminderStore.requestAccess()
                 reminders = try await reminderStore.readAll()
-            }catch Error.accessDenied, Error.accessRestricted {
-                #if DEBUG
+                NotificationCenter.default.addObserver(self, selector: #selector(eventStoreChanged(_:)), name: .EKEventStoreChanged, object: nil)
+            }catch ReminderError.accessDenied, ReminderError.accessRestricted {
+#if DEBUG
                 reminders = Reminder.sampleData
-                #endif
+#endif
             }catch {
-                showError(error as! Error)
+                showError(error as! ReminderError)
             }
             updateSnapshot()
         }

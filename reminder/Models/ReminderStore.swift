@@ -19,7 +19,7 @@ class ReminderStore {
     
     func readAll() async throws -> [Reminder]{
         guard isAvailable else {
-            throw Error.accessDenied
+            throw ReminderError.accessDenied
         }
         
         let predicate = ekStore.predicateForReminders(in: nil)
@@ -29,11 +29,22 @@ class ReminderStore {
             do{
                 return try Reminder(with: ekReminder)
             }
-            catch Error.reminderHasNoDueDate {
+            catch ReminderError.reminderHasNoDueDate {
                 return nil
             }
         }
         return reminders
+    }
+    
+    func saveNew(with reminder: Reminder){
+        //        ekStore.save
+    }
+    
+    private func read(with id: Reminder.ID) throws -> EKReminder {
+        guard let ekReminder = ekStore.calendarItem(withIdentifier: id) as? EKReminder else {
+            throw ReminderError.failedReadingCalendarItem
+        }
+        return ekReminder
     }
     
     func requestAccess()async throws {
@@ -44,15 +55,31 @@ class ReminderStore {
         case .notDetermined:
             let accessGranted = try await ekStore.requestAccess(to: .reminder)
             guard accessGranted else {
-                throw Error.accessDenied
+                throw ReminderError.accessDenied
             }
         case .denied:
-            throw Error.accessDenied
+            throw ReminderError.accessDenied
         case .restricted:
-            throw Error.accessRestricted
+            throw ReminderError.accessRestricted
         @unknown default:
-                    throw Error.unknown
+            throw ReminderError.unknown
         }
         
+    }
+    
+    @discardableResult
+    func save(_ reminder: Reminder) throws -> Reminder.ID {
+        guard isAvailable else {
+            throw ReminderError.accessDenied
+        }
+        let ekReminder: EKReminder
+        do {
+            ekReminder = try read(with: reminder.id)
+        }catch {
+            ekReminder = EKReminder(eventStore: ekStore)
+        }
+        ekReminder.update(using: reminder, in: ekStore)
+        try ekStore.save(ekReminder, commit: true)
+        return ekReminder.calendarItemIdentifier
     }
 }
